@@ -21,6 +21,7 @@ Adultos entre 18 e 45 anos que desejam melhorar sua qualidade de vida por meio d
 - Cadastro de atividades físicas com duração e data
 - Monitoramento da qualidade do sono (data e horas dormidas)
 - Histórico geral consolidado com todos os registros
+- Persistência dos dados em nuvem com Firebase Firestore
 
 ## 🧰 Tecnologias Utilizadas
 
@@ -28,14 +29,14 @@ Adultos entre 18 e 45 anos que desejam melhorar sua qualidade de vida por meio d
 - TypeScript
 - Expo
 - Expo Router
-- AsyncStorage
+- Firebase Firestore
 
 ## 🚀 Como Executar
 
 1. Clone o repositório:
 
 ```bash
-git clone https://github.com/BrunoSossella/healthtrack.git
+git clone https://github.com/Sossella05/Healthtrack
 cd healthtrack
 ```
 
@@ -66,3 +67,7 @@ npx expo start
 👤 Autor: **Bruno Sossella**  
 📧 Email: bdcsossella@minha.fag.edu.br  
 📆 Atualizado em: 21/05/2025
+
+## ⚡ Observação
+
+Para testar a integração com o Firebase, é necessário configurar as credenciais no arquivo `src/config/firebaseConfig.ts`.
