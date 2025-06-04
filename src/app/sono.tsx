@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,48 +6,49 @@ import {
   Button,
   FlatList,
   StyleSheet,
+  Alert,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
-interface Sono {
-  data: string;
-  horas: string;
-}
+import { db } from "@/config/firebaseConfig";
+import { collection, addDoc, onSnapshot, query } from "firebase/firestore";
 
 export default function SonoScreen() {
   const [data, setData] = useState("");
   const [horas, setHoras] = useState("");
-  const [registros, setRegistros] = useState<Sono[]>([]);
-
-  const STORAGE_KEY = "@registros_sono";
+  const [registros, setRegistros] = useState<any[]>([]);
 
   useEffect(() => {
-    const carregar = async () => {
-      const salvos = await AsyncStorage.getItem(STORAGE_KEY);
-      if (salvos) setRegistros(JSON.parse(salvos));
-    };
-    carregar();
+    const subscriber = onSnapshot(query(collection(db, "registrosSono")), (snapshot) => {
+      const lista: any[] = [];
+      snapshot.forEach((doc) => {
+        lista.push({ id: doc.id, ...doc.data() });
+      });
+      setRegistros(lista);
+    });
+
+    return () => subscriber();
   }, []);
 
-  const salvar = async (novos: Sono[]) => {
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(novos));
-  };
-
-  const adicionar = () => {
-    if (data && horas) {
-      const novo = { data, horas };
-      const atualizados = [...registros, novo];
-      setRegistros(atualizados);
-      salvar(atualizados);
+  const adicionar = async () => {
+    if (!data || !horas || isNaN(Number(horas)) || Number(horas) <= 0) {
+      Alert.alert("Erro", "Por favor, insira uma data e horas válidas.");
+      return;
+    }
+    try {
+      await addDoc(collection(db, "registrosSono"), {
+        data,
+        horas: Number(horas),
+      });
+      Alert.alert("Sucesso", "Registro de sono salvo!");
       setData("");
       setHoras("");
+    } catch (error) {
+      Alert.alert("Erro", "Não foi possível salvar o registro.");
     }
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.titulo}>Monitoramento do Sono 🛌</Text>
-
       <TextInput
         style={styles.input}
         placeholder="Data (ex: 20/05/2025)"
@@ -61,17 +62,15 @@ export default function SonoScreen() {
         value={horas}
         onChangeText={setHoras}
       />
-
       <Button title="Adicionar" onPress={adicionar} />
-
       <Text style={styles.subtitulo}>Registros:</Text>
       <FlatList
         data={registros}
-        keyExtractor={(_, index) => index.toString()}
+        keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <Text style={styles.item}>
-            {item.data} - {item.horas} horas
-          </Text>
+          <View style={styles.itemContainer}>
+            <Text style={styles.item}>{item.data} - {item.horas} horas</Text>
+          </View>
         )}
       />
     </View>
@@ -89,5 +88,10 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderRadius: 5,
   },
-  item: { padding: 8, fontSize: 16, borderBottomWidth: 1, borderColor: "#eee" },
+  itemContainer: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  item: { fontSize: 16 },
 });

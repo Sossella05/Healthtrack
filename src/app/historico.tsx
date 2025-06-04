@@ -1,26 +1,40 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { db } from "@/config/firebaseConfig";
+import { collection, onSnapshot, query } from "firebase/firestore";
 
 export default function HistoricoScreen() {
-  const [agua, setAgua] = useState<string[]>([]);
-  const [sono, setSono] = useState<{ data: string; horas: string }[]>([]);
-  const [atividade, setAtividade] = useState<
-    { nome: string; duracao: string; data: string }[]
-  >([]);
+  const [agua, setAgua] = useState<any[]>([]);
+  const [sono, setSono] = useState<any[]>([]);
+  const [atividade, setAtividade] = useState<any[]>([]);
 
   useEffect(() => {
-    const carregar = async () => {
-      const aguaSalva = await AsyncStorage.getItem("@registros_agua");
-      const sonoSalvo = await AsyncStorage.getItem("@registros_sono");
-      const atividadesSalvas = await AsyncStorage.getItem("@atividades");
+    // Água
+    const unsubAgua = onSnapshot(query(collection(db, "registrosAgua")), (snapshot) => {
+      const lista: any[] = [];
+      snapshot.forEach((doc) => lista.push({ id: doc.id, ...doc.data() }));
+      setAgua(lista);
+    });
 
-      if (aguaSalva) setAgua(JSON.parse(aguaSalva));
-      if (sonoSalvo) setSono(JSON.parse(sonoSalvo));
-      if (atividadesSalvas) setAtividade(JSON.parse(atividadesSalvas));
+    // Sono
+    const unsubSono = onSnapshot(query(collection(db, "registrosSono")), (snapshot) => {
+      const lista: any[] = [];
+      snapshot.forEach((doc) => lista.push({ id: doc.id, ...doc.data() }));
+      setSono(lista);
+    });
+
+    // Atividades
+    const unsubAtividade = onSnapshot(query(collection(db, "atividadesFisicas")), (snapshot) => {
+      const lista: any[] = [];
+      snapshot.forEach((doc) => lista.push({ id: doc.id, ...doc.data() }));
+      setAtividade(lista);
+    });
+
+    return () => {
+      unsubAgua();
+      unsubSono();
+      unsubAtividade();
     };
-
-    carregar();
   }, []);
 
   return (
@@ -30,8 +44,10 @@ export default function HistoricoScreen() {
       <Text style={styles.subtitulo}>💧 Água</Text>
       {agua.length > 0 ? (
         agua.map((item, i) => (
-          <Text key={i} style={styles.item}>
-            • {item}
+          <Text key={item.id} style={styles.item}>
+            • {item.quantidade} ml ({item.data?.seconds
+              ? new Date(item.data.seconds * 1000).toLocaleString()
+              : item.data})
           </Text>
         ))
       ) : (
@@ -41,7 +57,7 @@ export default function HistoricoScreen() {
       <Text style={styles.subtitulo}>😴 Sono</Text>
       {sono.length > 0 ? (
         sono.map((item, i) => (
-          <Text key={i} style={styles.item}>
+          <Text key={item.id} style={styles.item}>
             • {item.data} — {item.horas} horas
           </Text>
         ))
@@ -52,7 +68,7 @@ export default function HistoricoScreen() {
       <Text style={styles.subtitulo}>🏋️ Atividades</Text>
       {atividade.length > 0 ? (
         atividade.map((item, i) => (
-          <Text key={i} style={styles.item}>
+          <Text key={item.id} style={styles.item}>
             • {item.data} — {item.nome} ({item.duracao} min)
           </Text>
         ))
@@ -65,13 +81,8 @@ export default function HistoricoScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: "#fff" },
-  titulo: { fontSize: 22, fontWeight: "bold", marginBottom: 20 },
-  subtitulo: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginTop: 20,
-    marginBottom: 5,
-  },
-  item: { fontSize: 16, paddingVertical: 2 },
-  vazio: { fontSize: 14, color: "#888" },
+  titulo: { fontSize: 22, fontWeight: "bold", marginBottom: 10 },
+  subtitulo: { fontSize: 18, marginTop: 20 },
+  item: { padding: 8, fontSize: 16, borderBottomWidth: 1, borderColor: "#eee" },
+  vazio: { color: "#888", fontStyle: "italic", marginBottom: 10 },
 });

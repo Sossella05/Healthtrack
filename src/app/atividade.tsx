@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,8 +6,10 @@ import {
   Button,
   FlatList,
   StyleSheet,
+  Alert,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { db } from "@/config/firebaseConfig";
+import { collection, addDoc, onSnapshot, query } from "firebase/firestore";
 
 interface Atividade {
   nome: string;
@@ -19,31 +21,35 @@ export default function AtividadeScreen() {
   const [nome, setNome] = useState("");
   const [duracao, setDuracao] = useState("");
   const [data, setData] = useState("");
-  const [atividades, setAtividades] = useState<Atividade[]>([]);
-
-  const STORAGE_KEY = "@atividades";
+  const [atividades, setAtividades] = useState<any[]>([]);
 
   useEffect(() => {
-    const carregar = async () => {
-      const salvos = await AsyncStorage.getItem(STORAGE_KEY);
-      if (salvos) setAtividades(JSON.parse(salvos));
-    };
-    carregar();
+    const subscriber = onSnapshot(query(collection(db, "atividadesFisicas")), (snapshot) => {
+      const lista: any[] = [];
+      snapshot.forEach((doc) => {
+        lista.push({ id: doc.id, ...doc.data() });
+      });
+      setAtividades(lista);
+    });
+
+    return () => subscriber();
   }, []);
 
-  const salvar = async (novas: Atividade[]) => {
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(novas));
-  };
-
-  const adicionar = () => {
+  const adicionar = async () => {
     if (nome && duracao && data) {
-      const nova = { nome, duracao, data };
-      const atualizadas = [...atividades, nova];
-      setAtividades(atualizadas);
-      salvar(atualizadas);
-      setNome("");
-      setDuracao("");
-      setData("");
+      try {
+        await addDoc(collection(db, "atividadesFisicas"), {
+          nome,
+          duracao,
+          data,
+        });
+        Alert.alert("Sucesso", "Atividade registrada!");
+        setNome("");
+        setDuracao("");
+        setData("");
+      } catch (error) {
+        Alert.alert("Erro", "Não foi possível registrar a atividade.");
+      }
     }
   };
 
@@ -76,7 +82,7 @@ export default function AtividadeScreen() {
       <Text style={styles.subtitulo}>Atividades cadastradas:</Text>
       <FlatList
         data={atividades}
-        keyExtractor={(_, index) => index.toString()}
+        keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <Text style={styles.item}>
             {item.data} - {item.nome} ({item.duracao} min)

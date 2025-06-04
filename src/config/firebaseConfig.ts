@@ -1,20 +1,17 @@
-import firebase from 'firebase/compat/app';
-import 'firebase/compat/database'; // Importa o Realtime Database
+import { initializeApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBdEUXWD6ieqJ4EnElUW78x5_FlbXy0CuE",
-  authDomain: "healthtrack.firebaseapp.com",
-  projectId: "healthtrack",
-  storageBucket: "healthtrack.appspot.com",
-  messagingSenderId: "656487711987",
-  appId: "1:656487711987:web:0e9dbc7f5301743d8ce386"
+  apiKey: "AIzaSyC0swm5e196kQprzzFj1i1rPyp04QKCuE", // copie da sua foto
+  authDomain: "healthtrack2025.firebaseapp.com",
+  projectId: "healthtrack2025",
+  storageBucket: "healthtrack2025.appspot.com",
+  messagingSenderId: "10296489486367",
+  appId: "1:10296489486367:web:4b2d54b6923042c2cae7ca"
+  // Não precisa do measurementId para o Firestore
 };
 
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
-}
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-// Referência para o Realtime Database
-const database = firebase.database();
-
-export { database };
+export { db };
