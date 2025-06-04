@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
+import { View, Text, Button, StyleSheet, Image } from 'react-native';
 import { router } from 'expo-router';
 
 export default function HomeScreen() {
   return (
     <View style={styles.container}>
+      <Image source={require('../assets/icon.png')} style={styles.icon} />
       <Text style={styles.title}>Bem-vindo ao HealthTrack!</Text>
 
       <Button title="REGISTRO DE ÁGUA" onPress={() => router.push('/agua')} />
@@ -28,6 +29,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     backgroundColor: '#f8f8f8',
+  },
+  icon: {
+    width: 100,
+    height: 100,
+    marginBottom: 20,
   },
   title: {
     fontSize: 24,
