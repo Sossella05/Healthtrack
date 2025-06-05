@@ -3,19 +3,20 @@ import {
   View,
   Text,
   TextInput,
-  Button,
-  FlatList,
   StyleSheet,
   Alert,
+  FlatList,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform
 } from "react-native";
-import { db } from "@/config/firebaseConfig"; // Certifique-se que o caminho está correto
+import { db } from "@/config/firebaseConfig";
 import { collection, addDoc, onSnapshot, query } from "firebase/firestore";
 
 export default function AguaScreen() {
   const [quantidade, setQuantidade] = useState("");
-  const [registros, setRegistros] = useState<any[]>([]); // Armazena os registros do Firebase
+  const [registros, setRegistros] = useState<any[]>([]);
 
-  // Listener em tempo real para registros no Firestore
   useEffect(() => {
     const subscriber = onSnapshot(query(collection(db, "registrosAgua")), (snapshot) => {
       const lista: any[] = [];
@@ -24,17 +25,14 @@ export default function AguaScreen() {
       });
       setRegistros(lista);
     });
-
-    return () => subscriber(); // Cleanup do listener
+    return () => subscriber();
   }, []);
 
-  // Função para adicionar registro no Firestore
   const adicionarRegistro = async () => {
     if (!quantidade || isNaN(Number(quantidade)) || Number(quantidade) <= 0) {
       Alert.alert("Erro", "Por favor, insira uma quantidade válida.");
       return;
     }
-
     try {
       await addDoc(collection(db, "registrosAgua"), {
         quantidade: Number(quantidade),
@@ -49,52 +47,107 @@ export default function AguaScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
       <Text style={styles.titulo}>Registro de Água 💧</Text>
-
       <TextInput
         style={styles.input}
         placeholder="Quantidade (ml)"
         keyboardType="numeric"
         value={quantidade}
         onChangeText={setQuantidade}
+        placeholderTextColor="#aaa"
       />
-
-      <Button title="Adicionar" onPress={adicionarRegistro} />
-
+      <TouchableOpacity style={styles.button} onPress={adicionarRegistro} activeOpacity={0.8}>
+        <Text style={styles.buttonText}>ADICIONAR</Text>
+      </TouchableOpacity>
       <Text style={styles.subtitulo}>Registros:</Text>
       <FlatList
-        data={registros.sort((a, b) => b.data.seconds - a.data.seconds)} // Ordena do mais recente ao mais antigo
+        data={registros.sort((a, b) => b.data.seconds - a.data.seconds)}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.itemContainer}>
-            <Text style={styles.item}>{item.quantidade} ml</Text>
-            <Text style={styles.data}>
-              {new Date(item.data.seconds * 1000).toLocaleString()}
+          <View style={styles.card}>
+            <Text style={styles.cardQuantidade}>{item.quantidade} ml</Text>
+            <Text style={styles.cardData}>
+              {item.data?.seconds
+                ? new Date(item.data.seconds * 1000).toLocaleString()
+                : item.data}
             </Text>
           </View>
         )}
+        contentContainerStyle={{ paddingBottom: 40 }}
       />
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#fff" },
-  titulo: { fontSize: 22, fontWeight: "bold", marginBottom: 10 },
-  subtitulo: { fontSize: 18, marginTop: 20 },
+  container: {
+    flex: 1,
+    backgroundColor: '#e6f2ff',
+    padding: 20,
+  },
+  titulo: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#0077b6',
+    textAlign: 'center',
+    marginBottom: 20,
+    marginTop: 10,
+  },
   input: {
     borderWidth: 1,
-    borderColor: "#aaa",
-    padding: 10,
+    borderColor: '#aaa',
+    padding: 12,
+    marginBottom: 12,
+    borderRadius: 20,
+    backgroundColor: '#fff',
+    fontSize: 16,
+    color: '#222',
+  },
+  button: {
+    backgroundColor: '#f8f8f8',
+    borderRadius: 30,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginBottom: 24,
+    elevation: 2,
+  },
+  buttonText: {
+    color: '#0077b6',
+    fontSize: 18,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+    textAlign: 'center',
+  },
+  subtitulo: {
+    fontSize: 20,
+    color: '#0077b6',
+    fontWeight: 'bold',
     marginBottom: 10,
-    borderRadius: 5,
+    marginTop: 10,
   },
-  itemContainer: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 4,
+    elevation: 1,
   },
-  item: { fontSize: 16 },
-  data: { fontSize: 12, color: "#777" },
+  cardQuantidade: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#0077b6',
+  },
+  cardData: {
+    fontSize: 13,
+    color: '#888',
+    marginTop: 4,
+  },
 });

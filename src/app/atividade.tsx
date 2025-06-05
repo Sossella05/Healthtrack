@@ -3,10 +3,12 @@ import {
   View,
   Text,
   TextInput,
-  Button,
-  FlatList,
   StyleSheet,
   Alert,
+  FlatList,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform
 } from "react-native";
 import { db } from "@/config/firebaseConfig";
 import { collection, addDoc, onSnapshot, query } from "firebase/firestore";
@@ -31,7 +33,6 @@ export default function AtividadeScreen() {
       });
       setAtividades(lista);
     });
-
     return () => subscriber();
   }, []);
 
@@ -54,14 +55,17 @@ export default function AtividadeScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
       <Text style={styles.titulo}>Registro de Atividades 🏃‍♀️</Text>
-
       <TextInput
         style={styles.input}
         placeholder="Nome da atividade"
         value={nome}
         onChangeText={setNome}
+        placeholderTextColor="#aaa"
       />
       <TextInput
         style={styles.input}
@@ -69,40 +73,92 @@ export default function AtividadeScreen() {
         keyboardType="numeric"
         value={duracao}
         onChangeText={setDuracao}
+        placeholderTextColor="#aaa"
       />
       <TextInput
         style={styles.input}
         placeholder="Data (ex: 20/05/2025)"
         value={data}
         onChangeText={setData}
+        placeholderTextColor="#aaa"
       />
-
-      <Button title="Adicionar" onPress={adicionar} />
-
+      <TouchableOpacity style={styles.button} onPress={adicionar} activeOpacity={0.8}>
+        <Text style={styles.buttonText}>ADICIONAR</Text>
+      </TouchableOpacity>
       <Text style={styles.subtitulo}>Atividades cadastradas:</Text>
       <FlatList
         data={atividades}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <Text style={styles.item}>
-            {item.data} - {item.nome} ({item.duracao} min)
-          </Text>
+          <View style={styles.card}>
+            <Text style={styles.cardNome}>{item.data} - {item.nome} ({item.duracao} min)</Text>
+          </View>
         )}
+        contentContainerStyle={{ paddingBottom: 40 }}
       />
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#fff" },
-  titulo: { fontSize: 22, fontWeight: "bold", marginBottom: 10 },
-  subtitulo: { fontSize: 18, marginTop: 20 },
+  container: {
+    flex: 1,
+    backgroundColor: '#e6f2ff',
+    padding: 20,
+  },
+  titulo: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#0077b6',
+    textAlign: 'center',
+    marginBottom: 20,
+    marginTop: 10,
+  },
   input: {
     borderWidth: 1,
-    borderColor: "#aaa",
-    padding: 10,
-    marginBottom: 10,
-    borderRadius: 5,
+    borderColor: '#aaa',
+    padding: 12,
+    marginBottom: 12,
+    borderRadius: 20,
+    backgroundColor: '#fff',
+    fontSize: 16,
+    color: '#222',
   },
-  item: { padding: 8, fontSize: 16, borderBottomWidth: 1, borderColor: "#eee" },
+  button: {
+    backgroundColor: '#f8f8f8',
+    borderRadius: 30,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginBottom: 24,
+    elevation: 2,
+  },
+  buttonText: {
+    color: '#0077b6',
+    fontSize: 18,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+    textAlign: 'center',
+  },
+  subtitulo: {
+    fontSize: 20,
+    color: '#0077b6',
+    fontWeight: 'bold',
+    marginBottom: 10,
+    marginTop: 10,
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  cardNome: {
+    fontSize: 16,
+    color: '#222',
+  },
 });

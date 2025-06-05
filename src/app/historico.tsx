@@ -38,17 +38,20 @@ export default function HistoricoScreen() {
   }, []);
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
       <Text style={styles.titulo}>📋 Histórico Geral</Text>
 
       <Text style={styles.subtitulo}>💧 Água</Text>
       {agua.length > 0 ? (
         agua.map((item, i) => (
-          <Text key={item.id} style={styles.item}>
-            • {item.quantidade} ml ({item.data?.seconds
-              ? new Date(item.data.seconds * 1000).toLocaleString()
-              : item.data})
-          </Text>
+          <View key={item.id} style={styles.card}>
+            <Text style={styles.cardInfo}>{item.quantidade} ml</Text>
+            <Text style={styles.cardData}>
+              {item.data?.seconds
+                ? new Date(item.data.seconds * 1000).toLocaleString()
+                : item.data}
+            </Text>
+          </View>
         ))
       ) : (
         <Text style={styles.vazio}>Nenhum registro</Text>
@@ -57,9 +60,9 @@ export default function HistoricoScreen() {
       <Text style={styles.subtitulo}>😴 Sono</Text>
       {sono.length > 0 ? (
         sono.map((item, i) => (
-          <Text key={item.id} style={styles.item}>
-            • {item.data} — {item.horas} horas
-          </Text>
+          <View key={item.id} style={styles.card}>
+            <Text style={styles.cardInfo}>{item.data} — {item.horas} horas</Text>
+          </View>
         ))
       ) : (
         <Text style={styles.vazio}>Nenhum registro</Text>
@@ -68,9 +71,9 @@ export default function HistoricoScreen() {
       <Text style={styles.subtitulo}>🏋️ Atividades</Text>
       {atividade.length > 0 ? (
         atividade.map((item, i) => (
-          <Text key={item.id} style={styles.item}>
-            • {item.data} — {item.nome} ({item.duracao} min)
-          </Text>
+          <View key={item.id} style={styles.card}>
+            <Text style={styles.cardInfo}>{item.data} — {item.nome} ({item.duracao} min)</Text>
+          </View>
         ))
       ) : (
         <Text style={styles.vazio}>Nenhum registro</Text>
@@ -80,9 +83,49 @@ export default function HistoricoScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#fff" },
-  titulo: { fontSize: 22, fontWeight: "bold", marginBottom: 10 },
-  subtitulo: { fontSize: 18, marginTop: 20 },
-  item: { padding: 8, fontSize: 16, borderBottomWidth: 1, borderColor: "#eee" },
-  vazio: { color: "#888", fontStyle: "italic", marginBottom: 10 },
+  container: {
+    flex: 1,
+    backgroundColor: '#e6f2ff',
+    padding: 20,
+  },
+  titulo: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#0077b6',
+    textAlign: 'center',
+    marginBottom: 20,
+    marginTop: 10,
+  },
+  subtitulo: {
+    fontSize: 20,
+    color: '#0077b6',
+    fontWeight: 'bold',
+    marginBottom: 10,
+    marginTop: 10,
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  cardInfo: {
+    fontSize: 16,
+    color: '#222',
+  },
+  cardData: {
+    fontSize: 13,
+    color: '#888',
+    marginTop: 4,
+  },
+  vazio: {
+    color: '#888',
+    fontStyle: 'italic',
+    marginBottom: 10,
+  },
 });
