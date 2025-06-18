@@ -7,7 +7,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Image source={require('../../assets/icon.png')} style={styles.icon} />
+        <Image source={require('../../assets/images/icon.png')} style={styles.icon} />
         <Text style={styles.title}>Bem-vindo ao HealthTrack!</Text>
       </View>
       <View style={styles.buttonsContainer}>
@@ -56,7 +56,7 @@ function CustomButton({ text, onPress }: { text: string; onPress: () => void }) 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'linear-gradient(180deg, #e6f2ff 0%, #bde0fe 100%)',
+    backgroundColor: '#e6f2ff',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 16,
