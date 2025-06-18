@@ -54,6 +54,36 @@ npx expo start
 
 4. Abra com **Expo Go** no celular ou use um emulador/simulador.
 
+## 🖥️ Como Apresentar em Outro Computador
+
+Se você precisar rodar ou apresentar este projeto em outro computador, siga estes passos:
+
+1. **Clone o repositório:**
+   ```bash
+   git clone https://github.com/Sossella05/Healthtrack
+   cd healthtrack
+   ```
+2. **Instale as dependências:**
+   ```bash
+   npm install
+   ```
+3. **Inicie o projeto:**
+   - Para rodar no Expo Go (QR Code para celular):
+     ```bash
+     npx expo start
+     ```
+   - Para rodar no navegador (Web):
+     ```bash
+     npx expo start --web
+     ```
+4. **Abra o app:**
+   - No Expo Go: escaneie o QR Code com o app Expo Go no seu celular.
+   - No navegador: acesse o endereço exibido no terminal.
+
+**Importante:**
+- O arquivo de configuração do Firebase já está incluso no repositório, então não é necessário configurar nada extra para persistência dos dados.
+- O app está pronto para uso e apresentação em qualquer máquina com Node.js e npm instalados.
+
 ## 🧪 Estrutura de Telas
 
 - `/` - Página inicial com navegação
@@ -70,4 +100,4 @@ npx expo start
 
 ## ⚡ Observação
 
-Para testar a integração com o Firebase, é necessário configurar as credenciais no arquivo `src/config/firebaseConfig.ts`.
+O arquivo de configuração do Firebase (`src/config/firebaseConfig.ts`) já está incluso no repositório. Não é necessário configurar nada extra para rodar o app em outro computador.
