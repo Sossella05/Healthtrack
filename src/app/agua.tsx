@@ -11,7 +11,7 @@ import {
   Platform
 } from "react-native";
 import { db } from "@/config/firebaseConfig";
-import { collection, addDoc, onSnapshot, query } from "firebase/firestore";
+import { collection, addDoc, onSnapshot, query, deleteDoc, doc } from "firebase/firestore";
 
 export default function AguaScreen() {
   const [quantidade, setQuantidade] = useState("");
@@ -46,6 +46,40 @@ export default function AguaScreen() {
     }
   };
 
+  const excluirRegistro = async (id: string) => {
+    console.log('Tentando excluir registro com id:', id);
+    if (Platform.OS === "web") {
+      if (window.confirm("Tem certeza que deseja excluir este registro?")) {
+        try {
+          await deleteDoc(doc(db, 'registrosAgua', id));
+          console.log('Registro excluído:', id);
+        } catch (error) {
+          console.error('Erro ao excluir:', error);
+          window.alert('Não foi possível excluir o registro.');
+        }
+      }
+    } else {
+      Alert.alert(
+        'Excluir registro',
+        'Tem certeza que deseja excluir este registro?',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Excluir', style: 'destructive', onPress: async () => {
+              try {
+                await deleteDoc(doc(db, 'registrosAgua', id));
+                console.log('Registro excluído:', id);
+              } catch (error) {
+                console.error('Erro ao excluir:', error);
+                Alert.alert('Erro', 'Não foi possível excluir o registro.');
+              }
+            }
+          }
+        ]
+      );
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -69,12 +103,19 @@ export default function AguaScreen() {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.card}>
-            <Text style={styles.cardQuantidade}>{item.quantidade} ml</Text>
-            <Text style={styles.cardData}>
-              {item.data?.seconds
-                ? new Date(item.data.seconds * 1000).toLocaleString()
-                : item.data}
-            </Text>
+            <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+              <View>
+                <Text style={styles.cardQuantidade}>{item.quantidade} ml</Text>
+                <Text style={styles.cardData}>
+                  {item.data?.seconds
+                    ? new Date(item.data.seconds * 1000).toLocaleString()
+                    : item.data}
+                </Text>
+              </View>
+              <TouchableOpacity onPress={() => excluirRegistro(item.id)} style={styles.excluirBtn}>
+                <Text style={styles.excluirTxt}>✕</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
         contentContainerStyle={{ paddingBottom: 40 }}
@@ -149,5 +190,18 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#888',
     marginTop: 4,
+  },
+  excluirBtn: {
+    marginLeft: 12,
+    backgroundColor: '#ffdddd',
+    borderRadius: 16,
+    padding: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  excluirTxt: {
+    color: '#d90429',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });

@@ -11,7 +11,7 @@ import {
   Platform
 } from "react-native";
 import { db } from "@/config/firebaseConfig";
-import { collection, addDoc, onSnapshot, query } from "firebase/firestore";
+import { collection, addDoc, onSnapshot, query, deleteDoc, doc } from "firebase/firestore";
 
 export default function SonoScreen() {
   const [data, setData] = useState("");
@@ -37,7 +37,7 @@ export default function SonoScreen() {
     try {
       await addDoc(collection(db, "registrosSono"), {
         data,
-        horas: Number(horas),
+        horas: Number(horas.replace(',', '.')),
       });
       Alert.alert("Sucesso", "Registro de sono salvo!");
       setData("");
@@ -46,6 +46,50 @@ export default function SonoScreen() {
       Alert.alert("Erro", "Não foi possível salvar o registro.");
     }
   };
+
+  const excluirRegistro = async (id: string) => {
+    console.log('Tentando excluir registro de sono com id:', id);
+    if (Platform.OS === "web") {
+      if (window.confirm("Tem certeza que deseja excluir este registro?")) {
+        try {
+          await deleteDoc(doc(db, 'registrosSono', id));
+          console.log('Registro de sono excluído:', id);
+        } catch (error) {
+          console.error('Erro ao excluir:', error);
+          window.alert('Não foi possível excluir o registro.');
+        }
+      }
+    } else {
+      Alert.alert(
+        'Excluir registro',
+        'Tem certeza que deseja excluir este registro?',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Excluir', style: 'destructive', onPress: async () => {
+              try {
+                await deleteDoc(doc(db, 'registrosSono', id));
+                console.log('Registro de sono excluído:', id);
+              } catch (error) {
+                console.error('Erro ao excluir:', error);
+                Alert.alert('Erro', 'Não foi possível excluir o registro.');
+              }
+            }
+          }
+        ]
+      );
+    }
+  };
+
+  function formatarData(text: string) {
+    let cleaned = text.replace(/\D/g, '');
+    if (cleaned.length > 4) {
+      cleaned = cleaned.replace(/(\d{2})(\d{2})(\d{0,4})/, '$1/$2/$3');
+    } else if (cleaned.length > 2) {
+      cleaned = cleaned.replace(/(\d{2})(\d{0,2})/, '$1/$2');
+    }
+    return cleaned;
+  }
 
   return (
     <KeyboardAvoidingView
@@ -57,7 +101,7 @@ export default function SonoScreen() {
         style={styles.input}
         placeholder="Data (ex: 20/05/2025)"
         value={data}
-        onChangeText={setData}
+        onChangeText={text => setData(formatarData(text))}
         placeholderTextColor="#aaa"
       />
       <TextInput
@@ -65,7 +109,7 @@ export default function SonoScreen() {
         placeholder="Horas de sono (ex: 7.5)"
         keyboardType="numeric"
         value={horas}
-        onChangeText={setHoras}
+        onChangeText={text => setHoras(text.replace(',', '.'))}
         placeholderTextColor="#aaa"
       />
       <TouchableOpacity style={styles.button} onPress={adicionar} activeOpacity={0.8}>
@@ -77,7 +121,12 @@ export default function SonoScreen() {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.card}>
-            <Text style={styles.cardInfo}>{item.data} - {item.horas} horas</Text>
+            <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+              <Text style={styles.cardInfo}>{item.data} - {item.horas} horas</Text>
+              <TouchableOpacity onPress={() => excluirRegistro(item.id)} style={styles.excluirBtn}>
+                <Text style={styles.excluirTxt}>✕</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
         contentContainerStyle={{ paddingBottom: 40 }}
@@ -146,5 +195,18 @@ const styles = StyleSheet.create({
   cardInfo: {
     fontSize: 16,
     color: '#222',
+  },
+  excluirBtn: {
+    marginLeft: 12,
+    backgroundColor: '#ffdddd',
+    borderRadius: 16,
+    padding: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  excluirTxt: {
+    color: '#d90429',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });

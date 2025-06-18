@@ -11,7 +11,7 @@ import {
   Platform
 } from "react-native";
 import { db } from "@/config/firebaseConfig";
-import { collection, addDoc, onSnapshot, query } from "firebase/firestore";
+import { collection, addDoc, onSnapshot, query, deleteDoc, doc } from "firebase/firestore";
 
 interface Atividade {
   nome: string;
@@ -54,6 +54,50 @@ export default function AtividadeScreen() {
     }
   };
 
+  const excluirAtividade = async (id: string) => {
+    console.log('Tentando excluir atividade com id:', id);
+    if (Platform.OS === "web") {
+      if (window.confirm("Tem certeza que deseja excluir esta atividade?")) {
+        try {
+          await deleteDoc(doc(db, 'atividadesFisicas', id));
+          console.log('Atividade excluída:', id);
+        } catch (error) {
+          console.error('Erro ao excluir:', error);
+          window.alert('Não foi possível excluir a atividade.');
+        }
+      }
+    } else {
+      Alert.alert(
+        'Excluir atividade',
+        'Tem certeza que deseja excluir esta atividade?',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Excluir', style: 'destructive', onPress: async () => {
+              try {
+                await deleteDoc(doc(db, 'atividadesFisicas', id));
+                console.log('Atividade excluída:', id);
+              } catch (error) {
+                console.error('Erro ao excluir:', error);
+                Alert.alert('Erro', 'Não foi possível excluir a atividade.');
+              }
+            }
+          }
+        ]
+      );
+    }
+  };
+
+  function formatarData(text: string) {
+    let cleaned = text.replace(/\D/g, '');
+    if (cleaned.length > 4) {
+      cleaned = cleaned.replace(/(\d{2})(\d{2})(\d{0,4})/, '$1/$2/$3');
+    } else if (cleaned.length > 2) {
+      cleaned = cleaned.replace(/(\d{2})(\d{0,2})/, '$1/$2');
+    }
+    return cleaned;
+  }
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -79,7 +123,7 @@ export default function AtividadeScreen() {
         style={styles.input}
         placeholder="Data (ex: 20/05/2025)"
         value={data}
-        onChangeText={setData}
+        onChangeText={text => setData(formatarData(text))}
         placeholderTextColor="#aaa"
       />
       <TouchableOpacity style={styles.button} onPress={adicionar} activeOpacity={0.8}>
@@ -91,7 +135,12 @@ export default function AtividadeScreen() {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.card}>
-            <Text style={styles.cardNome}>{item.data} - {item.nome} ({item.duracao} min)</Text>
+            <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+              <Text style={styles.cardNome}>{item.data} - {item.nome} ({item.duracao} min)</Text>
+              <TouchableOpacity onPress={() => excluirAtividade(item.id)} style={styles.excluirBtn}>
+                <Text style={styles.excluirTxt}>✕</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
         contentContainerStyle={{ paddingBottom: 40 }}
@@ -160,5 +209,18 @@ const styles = StyleSheet.create({
   cardNome: {
     fontSize: 16,
     color: '#222',
+  },
+  excluirBtn: {
+    marginLeft: 12,
+    backgroundColor: '#ffdddd',
+    borderRadius: 16,
+    padding: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  excluirTxt: {
+    color: '#d90429',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
