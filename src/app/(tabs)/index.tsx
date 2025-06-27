@@ -1,26 +1,59 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Animated } from 'react-native';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useAuth } from '../../components/useAuth';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../../config/firebaseConfig';
 
 export default function HomeScreen() {
+  const { logout, user } = useAuth();
+  const [nome, setNome] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchNome = async () => {
+      if (user && user.uid) {
+        try {
+          const docRef = doc(db, 'usuarios', user.uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            setNome(docSnap.data().nome);
+          } else {
+            setNome(null);
+          }
+        } catch (e) {
+          setNome(null);
+        }
+      }
+    };
+    fetchNome();
+  }, [user]);
+
+  const handleLogout = async () => {
+    await logout();
+    router.replace('/auth');
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Image source={require('../../assets/images/icon.png')} style={styles.icon} />
         <Text style={styles.title}>Bem-vindo ao HealthTrack!</Text>
+        {user && (
+          <Text style={styles.userEmail}>Olá, {nome ? nome : '...'}</Text>
+        )}
       </View>
       <View style={styles.buttonsContainer}>
         <CustomButton text="💧 REGISTRO DE ÁGUA" onPress={() => router.push('/agua')} />
         <CustomButton text="🏃‍♂️ ATIVIDADES FÍSICAS" onPress={() => router.push('/atividade')} />
         <CustomButton text="😴 MONITORAMENTO DO SONO" onPress={() => router.push('/sono')} />
         <CustomButton text="📊 HISTÓRICO GERAL" onPress={() => router.push('/historico')} />
+        <CustomButton text="🚪 SAIR" onPress={handleLogout} customStyle={styles.logoutButton} />
       </View>
     </View>
   );
 }
 
-function CustomButton({ text, onPress }: { text: string; onPress: () => void }) {
+function CustomButton({ text, onPress, customStyle }: { text: string; onPress: () => void; customStyle?: any }) {
   const [scale] = useState(new Animated.Value(1));
 
   const handlePressIn = () => {
@@ -41,13 +74,13 @@ function CustomButton({ text, onPress }: { text: string; onPress: () => void }) 
   return (
     <Animated.View style={{ transform: [{ scale }] }}>
       <TouchableOpacity
-        style={styles.button}
+        style={[styles.button, customStyle]}
         onPress={onPress}
         activeOpacity={0.85}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       >
-        <Text style={styles.buttonText}>{text}</Text>
+        <Text style={[styles.buttonText, customStyle && styles.logoutButtonText]}>{text}</Text>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -115,5 +148,21 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     textAlign: 'center',
     fontFamily: 'SpaceMono',
+  },
+  logoutButton: {
+    backgroundColor: '#ff6b6b',
+    borderColor: '#ff5252',
+  },
+  logoutButtonText: {
+    color: '#fff',
+  },
+  userEmail: {
+    color: '#0077b6',
+    fontSize: 16,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+    textAlign: 'center',
+    fontFamily: 'SpaceMono',
+    marginTop: 8,
   },
 });

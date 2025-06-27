@@ -1,17 +1,21 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, Firestore } from 'firebase/firestore';
+import { getAuth, Auth } from 'firebase/auth';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyC0swm5e196kQprzzFj1i1rPyp04QKCuE", // copie da sua foto
+export const firebaseConfig = {
+  apiKey: "AIzaSyCQ5wsn5e196kq0rpz7Fj1irPyp04QKCuE",
   authDomain: "healthtrack2025.firebaseapp.com",
   projectId: "healthtrack2025",
   storageBucket: "healthtrack2025.appspot.com",
-  messagingSenderId: "10296489486367",
-  appId: "1:10296489486367:web:4b2d54b6923042c2cae7ca"
-  // Não precisa do measurementId para o Firestore
+  messagingSenderId: "1029684986367",
+  appId: "1:1029684986367:web:4b2d54b6923042c2cae7ca"
 };
 
+// Inicialize o app Firebase
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 
-export { db };
+// Inicialize o Firestore e Auth com tipagem explícita
+const db: Firestore = getFirestore(app);
+const auth: Auth = getAuth(app);
+
+export { db, auth };

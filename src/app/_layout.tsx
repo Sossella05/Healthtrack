@@ -1,12 +1,13 @@
+import React, { useEffect } from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/components/useColorScheme';
+import { useAuth } from '@/components/useAuth';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -15,7 +16,7 @@ export {
 
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(tabs)',
+  initialRouteName: 'auth',
 };
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -47,7 +48,30 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
+  const { isAuthenticated, loading } = useAuth();
 
+  console.log('RootLayoutNav: Estado de autenticação:', { isAuthenticated, loading });
+
+  // Mostra loading enquanto verifica autenticação
+  if (loading) {
+    console.log('RootLayoutNav: Mostrando loading...');
+    return null;
+  }
+
+  console.log('RootLayoutNav: Renderizando navegação. isAuthenticated:', isAuthenticated);
+
+  if (!isAuthenticated) {
+    console.log('RootLayoutNav: Renderizando tela de auth');
+    return (
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <Stack>
+          <Stack.Screen name="auth" options={{ headerShown: false }} />
+        </Stack>
+      </ThemeProvider>
+    );
+  }
+
+  console.log('RootLayoutNav: Renderizando rotas autenticadas');
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
